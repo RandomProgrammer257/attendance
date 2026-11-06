@@ -1,0 +1,3 @@
+streams:
+  tapo:
+    - rtsp://TapoCamera:TapoCamera11@10.109.190.73:554/stream2

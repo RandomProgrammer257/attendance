@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    # Берем URL из переменной окружения, если нет - используем localhost
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Europe/Moscow
+
+  jackson:
+    time-zone: Europe/Moscow
+    serialization:
+      write-dates-as-timestamps: false
+
+  face:
+    registration-url: ${FACE_REGISTRATION_URL:http://python-face:8001/register}
+
+server:
+  port: 8080
+  address: 0.0.0.0
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+
+logging:
+  level:
+    org.hibernate.SQL: info
+    org.springframework.web.client: DEBUG
+    org.springframework.web: DEBUG
+app:
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin}

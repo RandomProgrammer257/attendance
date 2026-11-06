@@ -1,0 +1,104 @@
+services:
+  # ========== POSTGRESQL ==========
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: attendance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test3
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d test3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - attendance-network
+
+  # ========== ADMINER ==========
+  adminer:
+    image: adminer
+    container_name: attendance-adminer
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - attendance-network
+
+  # ========== GO2RTC ==========
+  go2rtc:
+    image: alexxit/go2rtc:latest
+    container_name: go2rtc
+    network_mode: host
+    volumes:
+      - ./go2rtc:/config
+    restart: unless-stopped
+
+  # ========== JAVA BACKEND ==========
+  java-backend:
+    build: ./java-backend
+    container_name: attendance-java
+    restart: unless-stopped
+    environment:
+      DB_URL: "jdbc:postgresql://postgres:5432/test3"
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      FACE_REGISTRATION_URL: "http://python-face:8002/register"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - attendance-network
+
+  # ========== PYTHON FACE ==========
+  python-face:
+    build: ./python-face
+    container_name: attendance-python
+    restart: unless-stopped
+    command: ["sh", "-c", "uvicorn face_simple:app --host 0.0.0.0 --port 8001 & uvicorn face_registration_api:app --host 0.0.0.0 --port 8002"]
+    volumes:
+      - insightface-models:/root/.insightface
+    environment:
+      PYTHONUNBUFFERED: "1"
+      OPENCV_FFMPEG_CAPTURE_OPTIONS: "rtsp_transport;tcp"
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+    depends_on:
+      - go2rtc
+      - java-backend
+    networks:
+      - attendance-network
+
+  # ========== REACT FRONTEND ==========
+  react-frontend:
+    build: ./react-frontend
+    container_name: attendance-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - java-backend
+    networks:
+      - attendance-network
+
+networks:
+  attendance-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  insightface-models:
