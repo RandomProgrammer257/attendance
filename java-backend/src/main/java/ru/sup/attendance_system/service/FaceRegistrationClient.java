@@ -19,7 +19,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class FaceRegistrationClient {
 
-    @Value("${face.registration-url:http://127.0.0.1:8001/register}")
+    @Value("${face.registration-url:http://0.0.0.0:8002/register}")
     private String registrationUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
