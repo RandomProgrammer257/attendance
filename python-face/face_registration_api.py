@@ -18,9 +18,9 @@ MAX_FILE_SIZE = 10 * 1024 * 1024
 MAX_PHOTOS = 5
 
 # Пороги качества (для регистрации они строже, чем для камеры)
-MIN_DET_SCORE = 0.80
+MIN_DET_SCORE = 0.50
 MIN_FACE_PX = 150
-MIN_SHARPNESS = 60.0
+MIN_SHARPNESS = 200.0
 MAX_YAW = 30
 MAX_PITCH = 25
 
@@ -60,8 +60,8 @@ def extract_embedding(image: np.ndarray, name: str) -> np.ndarray:
 
     crop = image[max(0, y1):min(h, y2), max(0, x1):min(w, x2)]
     gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-    if cv2.Laplacian(gray, cv2.CV_64F).var() < MIN_SHARPNESS:
-        raise HTTPException(422, f"{name}: фотография размытая")
+#    if cv2.Laplacian(gray, cv2.CV_64F).var() < MIN_SHARPNESS:
+#        raise HTTPException(422, f"{name}: фотография размытая")
 
     pose = getattr(face, "pose", None)  # pitch, yaw, roll
     if pose is not None:
